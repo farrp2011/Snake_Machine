@@ -11,7 +11,7 @@ class DeepQNetwork(nn.Module):
         self.fc1_dims = fc1_dims
         self.fc2_dims = fc2_dims
         self.n_actions = n_actions
-        self.fc1 = nn.Linear((self.input_dims), self.fc1_dims)
+        self.fc1 = nn.Linear(*self.input_dims, self.fc1_dims)
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
         self.fc3 = nn.Linear(self.fc2_dims, self.n_actions)
         self.optimizer = optim.Adam(self.parameters(), lr=ALPHA)
@@ -20,6 +20,8 @@ class DeepQNetwork(nn.Module):
         self.to(self.device)
 
     def forward(self, observation):
+        print(observation)
+        print(self.device)
         state = T.Tensor(observation).to(self.device)
         #observation = observation.view(-1)
         x = F.relu(self.fc1(state))
@@ -35,7 +37,7 @@ class Agent(object):
         self.policy = DeepQNetwork(lr, input_dims, lt_size, l2_size, n_actions)
 
     def choose_action(self, observation):
-        probabilities = F.softmax(self.policy.self.forward(observation))
+        probabilities = F.softmax(self.policy.forward(observation))
         action_probs = T.distributions.Categorical(probabilities)
         action = action_probs.sample()
         log_probs = action_probs.log_prob(action)

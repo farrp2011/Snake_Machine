@@ -416,18 +416,29 @@ class GameObj():
 
     def getObservatoin(self):
         #We need to flatten everything into a single array and hopefully it all works out
-        outputArr = [self.direction, self.scoreNum, self.food["x"], self.food["Y"]]
+        tempDir = self.direction
+        if(tempDir == None):
+            tempDir = -1
+        outputArr = [-1] * 404 #this is not a 404 error; 400 places and 4 for food(x,y),dirction and score
+        #outputArr = [tempDir, self.scoreNum, self.food["x"], self.food["y"]]
+        outputArr[0] = tempDir
+        outputArr[1] = self.scoreNum
+        outputArr[2] = self.food["x"]
+        outputArr[3] = self.food["y"]
+
         reward = 0.0
-        for part in self.body:
-            outputArr.append(part["x"])
-            outputArr.append(part["y"])
+        i = 0
+        while(i < len(self.body)):
+            outputArr[i+4] =self.body[i]["x"]
+            outputArr[i+4] =self.body[i]["y"]
+            i += 1
 
         #cal reward
         if(self.addToBody == True):
             reward += 5
         else:
             xDis = abs(self.body[0]["x"] - self.food["x"])
-            yDis = abs(self.body[0]["y"] - self.food["Y"])
+            yDis = abs(self.body[0]["y"] - self.food["y"])
             reward = 1/(xDis + yDis)
 
         if(self.gameOver == True):
@@ -435,7 +446,7 @@ class GameObj():
         info = "Head Location X:" + str(self.body[0]["x"]) + " Y:" + str(self.body[0]["y"])
 
         #observation_, reward, done, info
-        return(outputArr,reward,gameOver, info)
+        return(outputArr,reward, self.gameOver, info)
 
     def __init__(self, canvas):
 
@@ -453,3 +464,4 @@ class GameObj():
         self.display()
         self.updateDisplay()
         self.length = 0
+
