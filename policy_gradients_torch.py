@@ -20,8 +20,8 @@ class DeepQNetwork(nn.Module):
         self.to(self.device)
 
     def forward(self, observation):
-        print(observation)
-        print(self.device)
+        #print(observation)
+        #print(self.device)
         state = T.Tensor(observation).to(self.device)
         #observation = observation.view(-1)
         x = F.relu(self.fc1(state))
@@ -50,13 +50,14 @@ class Agent(object):
 
     def learn(self):
         self.policy.optimizer.zero_grad()
-        G = np.zeros(self.reward_memory)
+        #print(self.reward_memory)
+        G = np.zeros(len(self.reward_memory), dtype=np.float64)
         for t in range(len(self.reward_memory)):
             G_sum = 0
             discount = 1
             for k in range(t, len(self.reward_memory)):
                 G_sum += self.reward_memory[k] * discount
-                discount *= gamma
+                discount *= self.gamma
             G[t] = G_sum
         mean = np.mean(G)
         std = np.std(G) if np.std(G) > 0 else 1
@@ -64,7 +65,7 @@ class Agent(object):
         G = T.tensor(G, dtype=T.float).to(self.policy.device)
         loss = 0
 
-        for g, logprob in zip(G, self.acion_memory):
+        for g, logprob in zip(G, self.action_memory):
             loss += -g * logprob
 
         loss.backward()

@@ -108,7 +108,7 @@ class GameObj():
 
     def isGraphWin(self, canvas):
         if type(canvas) is GraphWin:
-            print("Graphics Object is correct")
+            print("")
         else:
             raise Exception('First Parameter Must be GraphWin Object')
 
@@ -282,13 +282,13 @@ class GameObj():
             i = i - 1
 
         # set Direction
-        if (button == ARROW_UP()):
+        if (button == ARROW_UP() and self.lastDir != ARROW_DOWN()):
             self.direction = ARROW_UP()
-        elif (button == ARROW_DOWN()):
+        elif (button == ARROW_DOWN() and self.lastDir != ARROW_UP()):
             self.direction = ARROW_DOWN()
-        elif (button == ARROW_LEFT()):
+        elif (button == ARROW_LEFT() and self.lastDir != ARROW_RIGHT()):
             self.direction = ARROW_LEFT()
-        elif (button == ARROW_RIGHT()):
+        elif (button == ARROW_RIGHT() and self.lastDir != ARROW_LEFT()):
             self.direction = ARROW_RIGHT()
 
         # This is the Direction we are going
@@ -309,8 +309,7 @@ class GameObj():
 
         # did the player lose?
         # did the play fall off the map?
-        if (self.body[0]["x"] < 0 or self.body[0]["y"] < 0 or self.body[0]["x"] > BOX_NUM() - 1 or self.body[0][
-            "y"] > BOX_NUM() - 1):
+        if (self.body[0]["x"] < 0 or self.body[0]["y"] < 0 or self.body[0]["x"] > BOX_NUM() - 1 or self.body[0]["y"] > BOX_NUM() - 1):
             # here the player fell off the map
             self.gameOver = True
             self.updateDisplay()
@@ -429,27 +428,45 @@ class GameObj():
         reward = 0.0
         i = 0
         while(i < len(self.body)):
-            outputArr[i+4] =self.body[i]["x"]
-            outputArr[i+4] =self.body[i]["y"]
+            outputArr[i+4] = self.body[i]["x"]
+            outputArr[i+4] = self.body[i]["y"]
             i += 1
 
         #cal reward
         if(self.addToBody == True):
-            reward += 5
+            reward += 25
         else:
             xDis = abs(self.body[0]["x"] - self.food["x"])
             yDis = abs(self.body[0]["y"] - self.food["y"])
-            reward = 1/(xDis + yDis)
+            reward = 1/(2*(xDis + yDis))
 
-        if(self.gameOver == True):
-            reward = 0
+        #if(self.gameOver == True):
+        #    reward = -1
         info = "Head Location X:" + str(self.body[0]["x"]) + " Y:" + str(self.body[0]["y"])
+        #reward += self.steps * .001 #we will give a little if it survies
 
+        #if the snake goes in the opposite dirctions no points
+        #if(ARROW_UP() == tempDir and self.lastDir == ARROW_DOWN()):
+        #    reward = -0.1
+        #if(ARROW_DOWN() == tempDir and self.lastDir == ARROW_UP()):
+        #    reward = -0.1
+        #if(ARROW_LEFT() == tempDir and self.lastDir == ARROW_RIGHT()):
+        #    reward = -0.1
+        #if(ARROW_RIGHT() == tempDir and self.lastDir == ARROW_LEFT()):
+        #    reward = -0.1
+        self.steps += 1
+        self.lastDir = tempDir
         #observation_, reward, done, info
+
+        if(self.steps > 10000):
+            self.gameOver = True
+
+
         return(outputArr,reward, self.gameOver, info)
 
     def __init__(self, canvas):
-
+        self.steps = 0
+        self.lastDir = -1
         self.isGraphWin(canvas)
         self.canvas = canvas
         self.gameOver = False
@@ -464,4 +481,5 @@ class GameObj():
         self.display()
         self.updateDisplay()
         self.length = 0
+
 
