@@ -9,6 +9,7 @@ from utils import plotLearning
 from graphics import *
 from datetime import datetime
 import csv
+import os
 
 #import gym
 import numpy as np
@@ -21,13 +22,16 @@ csv_output.append(["Round", "Total Reward", "Score", "Steps"])
 
 def main():
 
-
     score_history = []
-    n_episodes = 3000
+    n_episodes = 100000
     score = 0
-    #__init__( lr, input_dims, gamma=0.99, n_actions=4, lt_size=256, l2_size=256:
-    agent = Agent(lr=0.0005, input_dims=[404], gamma=0.99, n_actions=4, lt_size=64, l2_size=64)
+    renderInterval = 0
+    renderGame = 100 #we will render every X number of games
 
+
+    #__init__( lr, input_dims, gamma=0.99, n_actions=4, lt_size=256, l2_size=256:
+    agent = Agent(lr=0.0005, input_dims=[404], gamma=0.99, n_actions=4, lt_size=64, l2_size=64, l3_size=64)
+    win = None
     game_score = 0
 
     gameNotOver = True
@@ -35,16 +39,23 @@ def main():
     #while user_quit == False:
     for i in range(n_episodes):
         gameNotOver = True
-        print("game: ", i ,"   Socre: ", score)
-        score = 0
-        win = GraphWin("Snake Game", WIDTH(), HEIGHT())
 
-        game = GameObj(win)
+        if(renderInterval == renderGame):
+            win = GraphWin("Snake Game", WIDTH(), HEIGHT())
+            game = GameObj(win)
+        else:
+            game = GameObj()
+            #here we will render the X game
+
+        score = 0
+
         observation, reward, done, info = game.getObservatoin()
-#        try:
+
         while(gameNotOver == True):
+            #we are moving through each step of the game here
             action = agent.choose_action(observation)
             gameNotOver = game.logic(action)
+            #print(action)
             observation_, reward, done, info = game.getObservatoin()
 
             game_score = game.scoreNum
@@ -52,17 +63,26 @@ def main():
             agent.store_rewards(reward)
             observation = observation_
             score += reward
-                #time.sleep(.1)#this is the game speed!
 
-#        except:
-#            print("some error but the user probably clicked the exit button")
-        #user_quit = game.playAgain() #asks if the user whats to play again but it is not down yet
-        win.close()
+        if(renderInterval == renderGame):
+            #we need to make sure to close the window and reset the interval
+            win.close()
+            renderInterval = 0
+
+        renderInterval += 1
         score_history.append(score)
         csv_output.append([i, score, game.scoreNum, game.steps])
+
+        os.system("clear")
+        print("Game  : ", i)
+        print("Reward: ", score)
+        print("Score : ", game.scoreNum)
+        print("Steps : ", game.steps)
+
+
         agent.learn()
         n_episodes -= 1
-
+    agent.saveModel()
 
 
 main()

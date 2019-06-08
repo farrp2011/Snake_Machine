@@ -110,9 +110,13 @@ class GameObj():
         if type(canvas) is GraphWin:
             print("")
         else:
-            raise Exception('First Parameter Must be GraphWin Object')
+            #print("Did not provid a canvas/window Obj to render game")
+            #print("The game will not render")
+            self.canvas = None
 
     def display(self):
+        if(self.canvas == None):
+           return
 
         if (self.isDisplay == True):
             return  # we dont't what to run this twice
@@ -334,6 +338,9 @@ class GameObj():
         return (True)
 
     def updateDisplay(self):
+        if(self.canvas == None):
+            return()
+
         if (self.gameOver == True):
             self.gameMessage.setText("Game Over")
             return ()
@@ -368,6 +375,8 @@ class GameObj():
         update(5)  # this function forces everything to be drawn
 
     def playAgain(self):
+        if(self.canvas == None):
+            return()
 
         againPointX1 = round(WIDTH() * .25)
         againPointX2 = round(WIDTH() * .75)
@@ -395,14 +404,12 @@ class GameObj():
         madeSelection = False
         while (madeSelection == False):
             anchor = self.canvas.getMouse()
-            if (
-                    anchor.getX() > againPointX1 and anchor.getY() > againPointY1 and anchor.getX() < againPointX2 and anchor.getY() < againPointY2):
+            if(anchor.getX() > againPointX1 and anchor.getY() > againPointY1 and anchor.getX() < againPointX2 and anchor.getY() < againPointY2):
                 # are we inside the box of the again box
                 madeSelection = True
                 # print("They want to play again")
                 selection = False
-            if (
-                    anchor.getX() > endPointX1 and anchor.getY() > endPointY1 and anchor.getX() < endPointX2 and anchor.getY() < endPointY2):
+            if(anchor.getX() > endPointX1 and anchor.getY() > endPointY1 and anchor.getX() < endPointX2 and anchor.getY() < endPointY2):
                 madeSelection = True
                 selection = True
                 # print("The Player wanted to end the game")
@@ -434,26 +441,16 @@ class GameObj():
 
         #cal reward
         if(self.addToBody == True):
-            reward += 25
-        else:
-            xDis = abs(self.body[0]["x"] - self.food["x"])
-            yDis = abs(self.body[0]["y"] - self.food["y"])
-            reward = 1/(2*(xDis + yDis))
+            reward += 25 * len(self.body)
 
         #if(self.gameOver == True):
         #    reward = -1
         info = "Head Location X:" + str(self.body[0]["x"]) + " Y:" + str(self.body[0]["y"])
         #reward += self.steps * .001 #we will give a little if it survies
 
-        #if the snake goes in the opposite dirctions no points
-        #if(ARROW_UP() == tempDir and self.lastDir == ARROW_DOWN()):
-        #    reward = -0.1
-        #if(ARROW_DOWN() == tempDir and self.lastDir == ARROW_UP()):
-        #    reward = -0.1
-        #if(ARROW_LEFT() == tempDir and self.lastDir == ARROW_RIGHT()):
-        #    reward = -0.1
-        #if(ARROW_RIGHT() == tempDir and self.lastDir == ARROW_LEFT()):
-        #    reward = -0.1
+        if(self.steps == 100):
+           reward += 1
+
         self.steps += 1
         self.lastDir = tempDir
         #observation_, reward, done, info
@@ -461,10 +458,10 @@ class GameObj():
         if(self.steps > 10000):
             self.gameOver = True
 
-
+        #print(reward)
         return(outputArr,reward, self.gameOver, info)
 
-    def __init__(self, canvas):
+    def __init__(self, canvas = None):
         self.steps = 0
         self.lastDir = -1
         self.isGraphWin(canvas)
@@ -481,5 +478,9 @@ class GameObj():
         self.display()
         self.updateDisplay()
         self.length = 0
+
+
+
+
 
 
