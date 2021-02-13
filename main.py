@@ -1,36 +1,36 @@
 #my suff
 from snakeObj import *
-#from policy_gradients_torch import DeepQNetwork
-#from policy_gradients_torch import Agent
-from policy_gradients_torch import Agent
-from utils import plotLearning
+from simple_dqn_tf import DeepQNetwork, Agent
+#from utils import plotLearning
 
 #Libary stuff
 from graphics import *
 from datetime import datetime
+import matplotlib.pyplot as plt
 import csv
 import os
-
-#import gym
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 
 csv_output = []
-csv_output.append(["Round", "Total Reward", "Score", "Steps"])
-
+csv_output.append(["Round Number", "Total Reward", "Score", "Steps"])
 
 def main():
+    
+    lr = 0.0002
+    n_episodes = int(input("How many times?"))
+    n_episodes += 50
+    agent = Agent(gamma=0.99, epsilon=1.0, alpha=lr, input_dims=[404], n_actions=4, mem_size=2000000, n_games=n_episodes, batch_size=128)
 
-    score_history = []
-    n_episodes = 100000
+    scores = []
+    eps_history = []
+    
+    
     score = 0
-    renderInterval = 0
-    renderGame = 100 #we will render every X number of games
+    renderInterval = 499
+    renderGame = 500 #we will render every X number of games
 
-
-    #__init__( lr, input_dims, gamma=0.99, n_actions=4, lt_size=256, l2_size=256:
-    agent = Agent(lr=0.0005, input_dims=[404], gamma=0.99, n_actions=4, lt_size=64, l2_size=64, l3_size=64)
     win = None
     game_score = 0
 
@@ -39,38 +39,41 @@ def main():
     #while user_quit == False:
     for i in range(n_episodes):
         gameNotOver = True
-
-        if(renderInterval == renderGame):
+        game = None
+        if(i > (n_episodes -50)):
+            junkVar = input("Press Enter To Contunue...")
             win = GraphWin("Snake Game", WIDTH(), HEIGHT())
             game = GameObj(win)
         else:
             game = GameObj()
-            #here we will render the X game
+            #here we will not render the game
 
         score = 0
 
-        observation, reward, done, info = game.getObservatoin()
-
+        observation, reward, done, info = game.getObservatoin()#this is our reset 
+        observation = np.array(observation)
         while(gameNotOver == True):
             #we are moving through each step of the game here
             action = agent.choose_action(observation)
+            
             gameNotOver = game.logic(action)
             #print(action)
             observation_, reward, done, info = game.getObservatoin()
-
+            
             game_score = game.scoreNum
 
-            agent.store_rewards(reward)
-            observation = observation_
             score += reward
+            agent.store_transition(observation, action, reward, observation_, int(done))
+            observation = np.array(observation_)
+            agent.learn()
 
-        if(renderInterval == renderGame):
+        if(i > (n_episodes - 50)):
             #we need to make sure to close the window and reset the interval
             win.close()
             renderInterval = 0
 
+        eps_history.append(agent.epsilon)
         renderInterval += 1
-        score_history.append(score)
         csv_output.append([i, score, game.scoreNum, game.steps])
 
         os.system("clear")
@@ -80,9 +83,8 @@ def main():
         print("Steps : ", game.steps)
 
 
-        agent.learn()
+        
         n_episodes -= 1
-    agent.saveModel()
 
 
 main()

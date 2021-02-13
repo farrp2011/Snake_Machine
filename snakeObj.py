@@ -441,15 +441,15 @@ class GameObj():
 
         #cal reward
         if(self.addToBody == True):
-            reward += 25 * len(self.body)
+            reward += 3
 
-        #if(self.gameOver == True):
-        #    reward = -1
+        if(self.gameOver == True):
+            reward = -1
         info = "Head Location X:" + str(self.body[0]["x"]) + " Y:" + str(self.body[0]["y"])
         #reward += self.steps * .001 #we will give a little if it survies
 
-        if(self.steps == 100):
-           reward += 1
+        #if(self.steps == 100 or self.steps == 50):
+        #   reward += 1
 
         self.steps += 1
         self.lastDir = tempDir
